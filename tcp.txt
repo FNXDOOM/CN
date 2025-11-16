@@ -1,0 +1,81 @@
+import java.io.*;
+import java.net.*;
+
+public class FileClient {
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 5000);
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            System.out.print("Enter the file name to request from server: ");
+            String fileName = userInput.readLine();
+            out.println(fileName);
+
+            String response = in.readLine();
+            if ("FOUND".equals(response)) {
+                System.out.println("\nFile contents:\n----------------");
+                String line;
+                while (!(line = in.readLine()).equals("END_OF_FILE")) {
+                    System.out.println(line);
+                }
+            } else {
+                System.out.println("File not found on server.");
+            }
+
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+---------------------
+Server:
+---------------------
+
+
+import java.io.*;
+import java.net.*;
+
+public class FileServer {
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(5000);
+            System.out.println("Server started. Waiting for client request...");
+
+            Socket socket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            String fileName = in.readLine();
+            System.out.println("Client requested file: " + fileName);
+
+            File file = new File(fileName);
+            if (file.exists()) {
+                out.println("FOUND");
+                BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = fileReader.readLine()) != null) {
+                    out.println(line);
+                }
+                fileReader.close();
+                out.println("END_OF_FILE");
+                System.out.println("File sent successfully.");
+            } else {
+                out.println("NOT_FOUND");
+                System.out.println("Requested file not found.");
+            }
+
+            socket.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
