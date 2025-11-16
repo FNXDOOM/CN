@@ -1,0 +1,401 @@
+LAB 5:
+import java.util.*;
+
+public class Lab5 {
+
+    private int D[];
+    private int n;
+    public static final int MAX_VALUE = 999;
+
+    public Lab5(int n) {
+        this.n = n;
+        D = new int[n + 1];
+    }
+
+    public void shortest(int s, int A[][]) {
+        for (int i = 1; i <= n; i++)
+            D[i] = MAX_VALUE;
+        D[s] = 0;
+        for (int k = 1; k <= n - 1; k++)
+            for (int i = 1; i <= n; i++)
+                for (int j = 1; j <= n; j++)
+                    if (A[i][j] != MAX_VALUE) {
+                        if (D[j] > D[i] + A[i][j])
+                            D[j] = D[i] + A[i][j];
+                    }
+        for (int i = 1; i <= n; i++)
+            System.out.println("Distance of source " + s + " to " + i + " is " + D[i]);
+    }
+
+    public static void main(String[] args) {
+        int n = 0, s;
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the number of vertices");
+        n = sc.nextInt();
+        int A[][] = new int[n + 1][n + 1];
+
+        System.out.println("Enter the Weighted matrix");
+        for (int i = 1; i <= n; i++)
+            for (int j = 1; j <= n; j++) {
+                A[i][j] = sc.nextInt();
+                if (i == j) {
+                    A[i][j] = 0;
+                    continue;
+                }
+                if (A[i][j] == 0)
+                    A[i][j] = MAX_VALUE;
+            }
+
+        System.out.println("Enter the source vertex");
+        s = sc.nextInt();
+        Lab5 b = new Lab5(n);
+        b.shortest(s, A);
+        sc.close();
+    }
+
+}
+
+
+
+----------------------------------------------------------------------------------------------------------------------------------
+Lab 6 :
+
+import java.util.Scanner;
+
+public class SimpleCRC {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter number of data bits: ");
+        int dataBits = sc.nextInt();
+        int[] data = new int[dataBits];
+        System.out.println("Enter data bits:");
+        for (int i = 0; i < dataBits; i++) {
+            data[i] = sc.nextInt();
+        }
+
+        System.out.print("Enter number of divisor bits: ");
+        int divisorBits = sc.nextInt();
+        int[] divisor = new int[divisorBits];
+        System.out.println("Enter divisor bits:");
+        for (int i = 0; i < divisorBits; i++) {
+            divisor[i] = sc.nextInt();
+        }
+
+        int totalBits = dataBits + divisorBits - 1;
+        int[] dividend = new int[totalBits];
+        System.arraycopy(data, 0, dividend, 0, dataBits);
+
+        System.out.print("Dividend (after appending 0's): ");
+        printArray(dividend);
+
+        int[] remainder = divide(dividend.clone(), divisor);
+
+        int[] crcCode = new int[totalBits];
+        for (int i = 0; i < totalBits; i++) {
+            crcCode[i] = dividend[i] ^ remainder[i];
+        }
+
+        System.out.print("CRC Code: ");
+        printArray(crcCode);
+
+        System.out.println("\nEnter received code (" + totalBits + " bits):");
+        int[] received = new int[totalBits];
+        for (int i = 0; i < totalBits; i++) {
+            received[i] = sc.nextInt();
+        }
+
+        int[] checkRem = divide(received.clone(), divisor);
+        boolean error = false;
+        for (int bit : checkRem) {
+            if (bit != 0) {
+                error = true;
+                break;
+            }
+        }
+
+        if (error) {
+            System.out.println("Error detected in received code.");
+        } else {
+            System.out.println("No error detected.");
+        }
+
+        sc.close();
+    }
+
+    static int[] divide(int[] dividend, int[] divisor) {
+        int cur = 0;
+        while ((dividend.length - cur) >= divisor.length) {
+            if (dividend[cur] == 1) {
+                for (int i = 0; i < divisor.length; i++) {
+                    dividend[cur + i] ^= divisor[i];
+                }
+            }
+            cur++;
+        }
+        return dividend;
+    }
+
+    static void printArray(int[] arr) {
+        for (int bit : arr) {
+            System.out.print(bit);
+        }
+        System.out.println();
+    }
+}
+
+
+
+--------------------------------------------------------------------------------------------------------------
+lab 7 :
+
+
+import java.util.Random;
+import java.util.Scanner;
+
+public class Lab7 {
+
+    static final int MAX = 50;
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        Random rand = new Random();
+
+        System.out.print("Enter the total number of frames to send: ");
+        int totalFrames = sc.nextInt();
+
+        System.out.print("Enter the window size: ");
+        int windowSize = sc.nextInt();
+
+        int framesSent = 0;
+
+        while (framesSent < totalFrames) {
+            int framesToSend = Math.min(windowSize, totalFrames - framesSent);
+
+            System.out.println("\nSending frames: ");
+            for (int i = 0; i < framesToSend; i++) {
+                System.out.println("Sent frame #" + (framesSent + i));
+            }
+            boolean allAcked = true;
+            for (int i = 0; i < framesToSend; i++) {
+                boolean ackReceived = rand.nextInt(10) < 9;
+
+                if (ackReceived) {
+                    System.out.println("ACK received for frame #" + (framesSent + i));
+                } else {
+                    System.out.println("ACK lost for frame #" + (framesSent + i) + " — retransmitting from here...");
+                    framesSent += i;
+                    allAcked = false;
+                    break;
+                }
+            }
+
+            if (allAcked) {
+                framesSent += framesToSend;
+            }
+        }
+
+        System.out.println("\nAll frames sent and acknowledged successfully.");
+    }
+}
+
+-----------------------------------------------------------------------------------------------------------------------------------------
+
+Lab 8 : 
+
+
+import java.io.*;
+import java.net.*;
+
+public class FileServer {
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(5000);
+            System.out.println("Server started. Waiting for client request...");
+
+            Socket socket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+
+            String fileName = in.readLine();
+            System.out.println("Client requested file: " + fileName);
+
+            File file = new File(fileName);
+            if (file.exists()) {
+                out.println("FOUND");
+                BufferedReader fileReader = new BufferedReader(new FileReader(file));
+                String line;
+                while ((line = fileReader.readLine()) != null) {
+                    out.println(line);
+                }
+                fileReader.close();
+                out.println("END_OF_FILE");
+                System.out.println("File sent successfully.");
+            } else {
+                out.println("NOT_FOUND");
+                System.out.println("Requested file not found.");
+            }
+
+            socket.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+import java.io.*;
+import java.net.*;
+
+public class FileClient {
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("localhost", 5000);
+            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+            System.out.print("Enter the file name to request from server: ");
+            String fileName = userInput.readLine();
+            out.println(fileName);
+
+            String response = in.readLine();
+            if ("FOUND".equals(response)) {
+                System.out.println("\nFile contents:\n----------------");
+                String line;
+                while (!(line = in.readLine()).equals("END_OF_FILE")) {
+                    System.out.println(line);
+                }
+            } else {
+                System.out.println("File not found on server.");
+            }
+
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+LAB 9 : 
+
+import java.io.*;
+import java.net.*;
+
+public class Client {
+    public static void main(String[] args) {
+        DatagramSocket skt = null;
+        try {
+            skt = new DatagramSocket(7799);
+            byte[] buffer = new byte[1000];
+            System.out.println("Client ready. Waiting for server messages...");
+
+            while (true) {
+                DatagramPacket dp = new DatagramPacket(buffer, buffer.length);
+                skt.receive(dp);
+                String msg = new String(dp.getData(), 0, dp.getLength());
+                System.out.println("Server says: " + msg);
+            }
+        } catch (IOException e) {
+            System.err.println("IOException: " + e);
+        } finally {
+            if (skt != null)
+                skt.close();
+        }
+    }
+}
+
+import java.io.*;
+import java.net.*;
+
+public class Server {
+    public static void main(String args[]) {
+        DatagramSocket sock = null;
+        try {
+            sock = new DatagramSocket();
+            String s;
+            BufferedReader cin = new BufferedReader(new InputStreamReader(System.in));
+            InetAddress host = InetAddress.getByName("localhost");
+            while (true) {
+                System.out.println("Enter message to send: ");
+                s = (String) cin.readLine();
+                byte[] b = s.getBytes();
+                DatagramPacket dp = new DatagramPacket(b, b.length, host, 7799);
+                sock.send(dp);
+            }
+        } catch (IOException e) {
+            System.err.println("IOException" + e);
+        }
+    }
+}
+
+
+
+---------------------------------------------------------------------------------------------------------------------
+
+LAB 10 : 
+
+import java.util.*;
+public class Leaky {
+    static int min(int x, int y) {
+        if (x < y)
+            return x;
+        else
+            return y;
+    }
+    public static void main(String[] args) {
+        int drop = 0, psent, nsec, cap, pleft = 0, i, outputRate;
+        int inp[] = new int[25];
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter bucket size (capacity): ");
+        cap = sc.nextInt();
+        System.out.println("Enter the operation rate (output rate per second): ");
+        outputRate = sc.nextInt();
+        System.out.println("Enter the number of seconds you want to simulate (traffic arrival): ");
+        nsec = sc.nextInt();
+        for (i = 0; i < nsec; i++) {
+            System.out.println("Enter the size of the packet entering at " + (i + 1) + " sec");
+            inp[i] = sc.nextInt();
+        }
+        System.out.println("\nSecond | Packet Received | Packet Sent | Packet left | Packet Dropped |");
+        System.out.println("-----------------------------------------------------------------------");
+        for (i = 0; i < nsec; i++) {
+            drop = 0;
+            int currentInput = inp[i];
+            if ((pleft + currentInput) > cap) {
+                drop = (pleft + currentInput) - cap;
+                pleft = cap;
+            } else {
+                pleft += currentInput;
+            }
+            psent = min(pleft, outputRate);
+            pleft = pleft - psent;
+            System.out.print(i + 1);
+            System.out.print("\t\t" + currentInput);
+            System.out.print("\t\t" + psent);
+            System.out.print("\t\t" + pleft);
+            System.out.print("\t\t" + drop);
+            System.out.println();
+        }
+        drop = 0;
+        for (; pleft > 0; i++) {
+            System.out.print(i + 1);
+            System.out.print("\t\t" + 0);
+            psent = min(pleft, outputRate);
+            pleft = pleft - psent;
+            System.out.print("\t\t" + psent);
+            System.out.print("\t\t" + pleft);
+            System.out.print("\t\t" + drop);
+            System.out.println();
+        }
+
+        sc.close();
+    }
+
+}
